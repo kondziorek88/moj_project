@@ -1,0 +1,156 @@
+/* ========== RESET ========== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ========== OBRAZKI ========== */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ========== UKŁAD STRONY ========== */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #ccc;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #222;
+}
+
+/* ========== ZEGAREK I DATA ========== */
+#zegarek, #data {
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    display: block;
+    width: 100%;
+}
+
+#zegarek {
+    font-size: 2em;
+    margin-top: 20px;
+}
+
+#data {
+    font-size: 1.2em;
+    color: #555;
+}
+
+/* ========== NAGŁÓWKI ========== */
+#header1 {
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+#header2 {
+    text-align: center;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: crimson;
+    margin: 20px 0;
+}
+
+/* ========== MENU ========== */
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    background-color: #444;
+    padding: 10px;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+nav ul li a:hover {
+    background-color: #888;
+}
+
+/* ========== TABELA ========== */
+table {
+    width: 60%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.tabelka {
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+/* 👇 Poprawiona klasa (wcześniej była literówka .tableka) */
+.tabelka img {
+    width: 80%;
+    height: auto;
+    border-radius: 10px;
+    object-fit: cover;
+    margin: 5px auto;
+    display: block;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efekt po najechaniu na zdjęcie */
+.tabelka img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ========== OBRAZKI OBROCONE ========== */
+.obroc {
+    transform: rotate(90deg);
+    transform-origin: center center;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: auto;
+    object-fit: contain;
+}
+
+/* ========== BLOKI TESTOWE (ANIMACJE) ========== */
+.test-block {
+    width: 200px;
+    border: 2px solid rgba(71, 236, 30, 1);
+    background: rgba(71, 236, 30, 0.7);
+    text-align: center;
+    color: #000;
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    margin: 20px auto;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.test-block:hover {
+    transform: scale(1.05);
+}
+
+/* ========== ANIMACJA 3 BLOK ========== */
+#animacjaTestowa3 {
+    width: 150px;
+    height: 80px;
+    background-color: lightblue;
+    border: 2px solid #333;
+    text-align: center;
+    line-height: 80px;
+    margin: 20px auto;
+    border-radius: 10px;
+}

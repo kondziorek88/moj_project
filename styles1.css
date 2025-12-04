@@ -1,0 +1,91 @@
+*{
+    box-sizing: border-box;
+}
+img{
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+table{
+    width:60%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.tabelka {
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+}
+.tableka img{
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #ccc;
+}
+#zegarek, #data {
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#zegarek, #data{
+    display: block;
+    width: 100%;
+}
+#zegarek {
+    font-size: 2em;
+    margin-top: 20px;
+}
+#data {
+    font-size: 1.2em;
+    color: #555;
+}
+#header1{
+    text-align: center;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+#header2{
+    text-align: center;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: crimson;
+}
+.obroc{
+    transform: rotate(90deg);
+  transform-origin: center center; 
+  width: 100%;        
+  height: auto;       
+  display: block;
+  margin: auto;
+  object-fit: contain; 
+}
+.test-block {
+    width: 200px;
+    border: 2px solid rgba(71,236, 30, 1);
+    background: rgba(71,236, 30, 0.7);
+    text-align: center;
+    color: #000;
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#animacjaTestowa3 {
+    width: 150px;
+    height: 80px;
+    background-color: lightblue;
+    border: 2px solid #333;
+    text-align: center;
+    line-height: 80px;
+}

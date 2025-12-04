@@ -1,0 +1,45 @@
+<h1>Strona 5</h1>
+
+<div id="animacjaTestowa1" class="test-block">Kliknij aby powiększyć</div>
+<div id="animacjaTestowa2" class="test-block">Najedź kursorem aby powiększyć</div>
+<div id="animacjaTestowa3" class="test-block">Klikaj do woli</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+$("#animacjaTestowa1").on("click", function(){
+    $(this).animate({
+        width: "500px",
+        opacity: 0.4,
+        fontSize: "3em",
+        borderWidth: "10px"
+    }, 1500);
+});
+
+$("#animacjaTestowa2").on({
+    mouseover: function() {
+        $(this).stop().animate({
+            width: 300,
+            height: 100,
+            fontSize: "2em"
+        }, 800);
+    },
+    mouseout: function() {
+        $(this).stop().animate({
+            width: 200,
+            height: 50,
+            fontSize: "1em"
+        }, 800);
+    }
+});
+
+$("#animacjaTestowa3").on("click", function(){
+    if (!$(this).is(":animated")){
+        $(this).animate({
+            width: "+=150",
+            height: "+=50",
+            opacity: "-=0.3"
+        }, 3000);
+    }
+});
+</script>
