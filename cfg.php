@@ -8,6 +8,7 @@
     if (!$link) echo '<b>przerwane połączenie </b>';
     if(!mysqli_select_db($link, $baza)) echo 'nie wybrano bazy';
 
+    $conn = $link;
     $login = 'admin@root.com';
     $pass = 'bombo';
     
