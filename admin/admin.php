@@ -7,7 +7,7 @@
 
 session_start();
 include '../cfg.php'; // Połączenie z bazą danych ($link / $conn)
-
+include 'sklep.php'; //połaczenie ze sklepem (obsługa kategorii)
 /**
  * Generuje formularz logowania do panelu admina.
  * * @return string Kod HTML formularza logowania.
@@ -262,6 +262,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
 
     // Wyświetlanie odpowiednich widoków w zależności od akcji
     switch ($action) {
+        // --- Strony CMS ---
         case 'edit':
             if ($id > 0) echo EdytujPodstrone($link, $id);
             break;
@@ -272,7 +273,37 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
             if ($id > 0) echo UsunPodstrone($link, $id);
             ListaPodstron($link);
             break;
+            
+        // --- Obsługa Sklepu (Kategorie) ---
+        case 'sklep_show':
+            PokazKategorie($link);
+            break;
+        case 'sklep_add_form':
+            echo FormularzDodajKategorie();
+            break;
+        case 'sklep_add':
+            if (isset($_POST['submit_add_cat'])) {
+                DodajKategorie($link);
+            }
+            PokazKategorie($link);
+            break;
+        case 'sklep_edit_form':
+            if ($id > 0) echo EdytujKategorieForm($link, $id);
+            break;
+        case 'sklep_edit':
+            if (isset($_POST['submit_edit_cat']) && $id > 0) {
+                EdytujKategorie($link, $id);
+            }
+            PokazKategorie($link);
+            break;
+        case 'sklep_delete':
+            if ($id > 0) UsunKategorie($link, $id);
+            PokazKategorie($link);
+            break;
+
+        // Domyślnie - lista podstron + link do sklepu
         default:
+            echo '<p><a href="admin.php?action=sklep_show" style="background:orange; color:white; padding:5px;">[ Zarządzaj Sklepem ]</a></p>';
             ListaPodstron($link);
             break;
     }

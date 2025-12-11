@@ -76,26 +76,56 @@ include('cfg.php'); // Dołączenie konfiguracji i połączenia z bazą danych
     } else {
         // Standardowa obsługa stron dynamicznych z bazy danych
         
-        // Zabezpieczenie przed SQL Injection: rzutowanie na liczbę całkowitą (int)
         $idp_int = intval($idp);
-        
-        // Jeśli $idp_int to 0 (np. ktoś wpisał tekst zamiast liczby), ustawiamy domyślnie 1
         if ($idp_int == 0) $idp_int = 1;
 
-        // Zapytanie SQL z limitem 1 rekordu dla optymalizacji
-        $sql = "SELECT * FROM page_list WHERE id = $idp_int AND status = 1 LIMIT 1";
-        $result = $conn->query($sql);
-
-        // Wyświetlenie treści, jeśli znaleziono stronę
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
+        // --- SKLEP NA STRONIE 4 ---
+        if ($idp_int == 4) {
             echo "<article class='page'>";
-            echo "<h2>{$row['page_title']}</h2>";
-            // Wyświetlenie zawartości (HTML z bazy jest interpretowany)
-            echo "<div class='page-content'>{$row['page_content']}</div>";
+            echo "<h2>Sklep z Widokówkami 🏔️🌊</h2>";
+            echo "<p>Zapraszamy do przeglądania naszych kategorii:</p>";
+            
+            // Tutaj wyświetlamy drzewo kategorii (możemy użyć funkcji z admin/sklep.php lub napisać uproszczoną wersję)
+            // Dla porządku napiszemy tu prosty kod wyświetlania, żeby nie includować całego pliku admina na froncie
+            
+            $sql_mothers = "SELECT * FROM categories WHERE matka = 0 ORDER BY nazwa ASC";
+            $result = $conn->query($sql_mothers);
+            
+            echo '<ul class="shop-categories">';
+            while ($matka = $result->fetch_assoc()) {
+                echo '<li><strong>' . htmlspecialchars($matka['nazwa']) . '</strong>';
+                
+                // Pobierz dzieci
+                $mid = $matka['id'];
+                $sql_kids = "SELECT * FROM categories WHERE matka = $mid ORDER BY nazwa ASC";
+                $res_kids = $conn->query($sql_kids);
+                
+                if ($res_kids->num_rows > 0) {
+                    echo '<ul>';
+                    while ($dziecko = $res_kids->fetch_assoc()) {
+                        echo '<li>' . htmlspecialchars($dziecko['nazwa']) . '</li>';
+                    }
+                    echo '</ul>';
+                }
+                echo '</li>';
+            }
+            echo '</ul>';
             echo "</article>";
+            
         } else {
-            echo "<p class='error'>Nie znaleziono strony o id = <strong>$idp_int</strong> lub jest ona nieaktywna.</p>";
+            // --- RESZTA STRON (Z BAZY) ---
+            $sql = "SELECT * FROM page_list WHERE id = $idp_int AND status = 1 LIMIT 1";
+            $result = $conn->query($sql);
+
+            if ($result && $result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                echo "<article class='page'>";
+                echo "<h2>{$row['page_title']}</h2>";
+                echo "<div class='page-content'>{$row['page_content']}</div>";
+                echo "</article>";
+            } else {
+                echo "<p class='error'>Nie znaleziono strony.</p>";
+            }
         }
     }
     ?>
