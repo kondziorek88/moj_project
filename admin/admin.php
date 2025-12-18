@@ -263,6 +263,26 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     // Wyświetlanie odpowiednich widoków w zależności od akcji
     switch ($action) {
         // --- Strony CMS ---
+        case 'prod_list':
+            PokazProdukty($link);
+            break;
+        case 'prod_add_form':
+            echo FormularzDodajProdukt($link);
+            break;
+        case 'prod_add':
+            if (isset($_POST['submit_add_prod'])) {
+                DodajProdukt($link);
+            }
+            PokazProdukty($link);
+            break;
+        case 'prod_edit':
+            if ($id > 0) echo EdytujProdukt($link, $id);
+            else PokazProdukty($link);
+            break;
+        case 'prod_delete':
+            if ($id > 0) UsunProdukt($link, $id);
+            PokazProdukty($link);
+            break;
         case 'edit':
             if ($id > 0) echo EdytujPodstrone($link, $id);
             break;
@@ -303,7 +323,10 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
 
         // Domyślnie - lista podstron + link do sklepu
         default:
-            echo '<p><a href="admin.php?action=sklep_show" style="background:orange; color:white; padding:5px;">[ Zarządzaj Sklepem ]</a></p>';
+            echo '<p>
+                <a href="admin.php?action=sklep_show" style="background:orange; color:white; padding:5px;">[ Kategorie Sklepu ]</a> 
+                <a href="admin.php?action=prod_list" style="background:blue; color:white; padding:5px;">[ Produkty ]</a>
+            </p>';
             ListaPodstron($link);
             break;
     }
