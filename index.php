@@ -1,17 +1,35 @@
 <?php
 /**
  * Główny plik indeksowy projektu.
- * Wersja: v1.8
- * Autor: Konrad Sendlewski
- * Opis: Plik odpowiada za ładowanie struktury strony, nagłówka, menu oraz dynamicznej treści z bazy danych.
+ * Wersja: v1.9 (z poprawką odświeżania)
  */
 
-error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING); // Raportowanie błędów z pominięciem ostrzeżeń
+error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+include('cfg.php');
+include('koszyk.php'); // Dołączamy logikę koszyka tutaj
 
-include('cfg.php'); // Dołączenie konfiguracji i połączenia z bazą danych
-include('koszyk.php');
+// =============================================
+// LOGIKA KOSZYKA (Musi być przed HTML!)
+// =============================================
+if (isset($_POST['action'])) {
+    // Dodawanie
+    if ($_POST['action'] == 'add_to_cart') {
+        DodajDoKoszyka($conn); 
+    }
+    // Usuwanie
+    if ($_POST['action'] == 'remove_item') {
+        UsunZKoszyka();
+    }
+    // Zmiana ilości
+    if ($_POST['action'] == 'update_qty') {
+        ZmienIlosc($conn);
+    }
+    // Finalizacja zakupu
+    if ($_POST['action'] == 'checkout') {
+        FinalizujZakup($conn);
+    }
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -38,7 +56,7 @@ include('koszyk.php');
             <li><a href="index.php?idp=1">Strona główna</a></li>
             <li><a href="index.php?idp=2">Sprzęt</a></li>
             <li><a href="index.php?idp=3">Strona 3</a></li>
-            <li><a href="index.php?idp=4">Strona 4</a></li>
+            <li><a href="index.php?idp=4">Sklep</a></li>
             <li><a href="index.php?idp=5">Strona 5</a></li>
             <li><a href="index.php?idp=6">Filmy</a></li>
             <li><a href="index.php?idp=contact">Kontakt</a></li>
@@ -47,9 +65,6 @@ include('koszyk.php');
 
     <main>
     <?php
-    // =============================================
-    // MECHANIZM ŁADOWANIA TREŚCI
-    // =============================================
 
     // Pobranie ID strony z parametru GET.
     // Zabezpieczenie: htmlspecialchars chroni przed XSS, jeśli wyświetlamy zmienną.
@@ -81,40 +96,32 @@ include('koszyk.php');
         if ($idp_int == 0) $idp_int = 1;
 
         // --- SKLEP NA STRONIE 4 ---
-        // --- SKLEP NA STRONIE 4 ---
         if ($idp_int == 4) {
             
             // ---------------------------------------------------------
-            // 1. OBSŁUGA LOGIKI KOSZYKA (Dodawanie / Usuwanie)
+            // 1. OBSŁUGA LOGIKI KOSZYKA (Add, Remove, Edit, CHECKOUT)
             // ---------------------------------------------------------
-            if (isset($_POST['action'])) {
-                if ($_POST['action'] == 'add_to_cart') {
-                    // Funkcja z pliku koszyk.php
-                    DodajDoKoszyka(); 
-                }
-                if ($_POST['action'] == 'clear_cart') {
-                    // Funkcja z pliku koszyk.php
-                    UsunKoszyk();
-                }
+            if (isset($_GET['msg']) && $_GET['msg'] == 'zakup_udany') {
+                echo "<div style='background: #d4edda; color: #155724; padding: 20px; border: 1px solid #c3e6cb; border-radius: 5px; margin-bottom: 20px;'>
+                        <h2>Dziękujemy za zakupy! 🎉</h2>
+                        <p>Twoje zamówienie zostało przyjęte.</p>
+                      </div>";
             }
+            
 
             echo "<article class='page'>";
             echo "<h2>Sklep z Widokówkami 🏔️🌊</h2>";
+
+            // Wyświetlenie koszyka (z przyciskiem Finalizuj)
+            echo PokazKoszyk(); 
+            
+            echo "<hr>";
             
             // ---------------------------------------------------------
-            // 2. WIDOK KOSZYKA (Na górze strony)
-            // ---------------------------------------------------------
-            // Wyświetla zieloną ramkę z zakupami (funkcja z koszyk.php)
-            echo PokazKoszyk();
-
-            echo "<hr>";
-
-            // ---------------------------------------------------------
-            // 3. WIDOK DRZEWA KATEGORII (Zadanie 1)
+            // 2. KATEGORIE
             // ---------------------------------------------------------
             echo "<div style='background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 30px;'>";
             echo "<h3>Kategorie:</h3>";
-            
             $sql_mothers = "SELECT * FROM categories WHERE matka = 0 ORDER BY nazwa ASC";
             $result = $conn->query($sql_mothers);
             
@@ -122,12 +129,9 @@ include('koszyk.php');
                 echo '<ul class="shop-categories">';
                 while ($matka = $result->fetch_assoc()) {
                     echo '<li><strong>' . htmlspecialchars($matka['nazwa']) . '</strong>';
-                    
-                    // Pobierz podkategorie (dzieci)
                     $mid = $matka['id'];
                     $sql_kids = "SELECT * FROM categories WHERE matka = $mid ORDER BY nazwa ASC";
                     $res_kids = $conn->query($sql_kids);
-                    
                     if ($res_kids->num_rows > 0) {
                         echo '<ul>';
                         while ($dziecko = $res_kids->fetch_assoc()) {
@@ -138,19 +142,16 @@ include('koszyk.php');
                     echo '</li>';
                 }
                 echo '</ul>';
-            } else {
-                echo "<p>Brak kategorii.</p>";
             }
             echo "</div>"; 
 
             echo "<hr>";
             
             // ---------------------------------------------------------
-            // 4. LISTA PRODUKTÓW (Zadanie 2)
+            // 3. PRODUKTY (Dostępne)
             // ---------------------------------------------------------
             echo "<h3>Nasze Produkty:</h3>";
 
-            // Pobieramy tylko dostępne produkty
             $dzis = date('Y-m-d');
             $sql_prod = "SELECT * FROM products 
                          WHERE status_dostepnosci = 1 
@@ -164,25 +165,27 @@ include('koszyk.php');
                 echo "<div style='display: flex; flex-wrap: wrap; gap: 20px;'>";
                 
                 while($row = $result_prod->fetch_assoc()) {
-                    // Obliczamy cenę brutto
                     $brutto = $row['cena_netto'] + ($row['cena_netto'] * $row['podatek_vat'] / 100);
                     $cena_display = number_format($brutto, 2);
                     
+                    // Naprawa ścieżki zdjęcia
+                    $img_path = $row['zdjecie'];
+                    if (substr($img_path, 0, 3) === '../') { $img_path = substr($img_path, 3); }
+
                     echo "<div class='product-card' style='border:1px solid #ddd; padding:15px; width: 250px; border-radius:8px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>";
                     
-                    // Zdjęcie
-                    if(!empty($row['zdjecie'])) {
-                        echo "<img src='{$row['zdjecie']}' alt='foto' style='width:100%; height:150px; object-fit:cover; border-radius:5px; margin-bottom: 10px;'>";
+                    if(!empty($img_path)) {
+                        echo "<img src='{$img_path}' alt='foto' style='width:100%; height:150px; object-fit:cover; border-radius:5px; margin-bottom: 10px;'>";
                     } else {
                          echo "<div style='width:100%; height:150px; background:#eee; display:flex; align-items:center; justify-content:center; margin-bottom: 10px; color:#aaa;'>Brak foto</div>";
                     }
 
-                    // Tytuł i Cena
                     echo "<h3 style='margin: 0 0 10px 0; font-size: 1.1em;'>{$row['tytul']}</h3>";
                     echo "<p style='margin: 5px 0;'>Cena: <strong style='color:#d9534f; font-size:1.2em;'>{$cena_display} zł</strong></p>";
+                    // Wyświetlenie dostępnej ilości
+                    echo "<p style='font-size:0.8em; color:green;'>Dostępne: <b>{$row['ilosc_magazyn']} szt.</b></p>";
                     echo "<p style='font-size:0.9em; color:#555; height: 40px; overflow: hidden;'>" . htmlspecialchars(substr($row['opis'], 0, 100)) . "...</p>";
                     
-                    // FORMULARZ DODAWANIA DO KOSZYKA
                     echo '<form method="post" action="index.php?idp=4">';
                     echo '  <input type="hidden" name="action" value="add_to_cart">';
                     echo '  <input type="hidden" name="id" value="'.$row['id'].'">';
@@ -199,6 +202,7 @@ include('koszyk.php');
             }
             
             echo "</article>";
+        
         
         } else {
             // --- RESZTA STRON (Z BAZY) ---

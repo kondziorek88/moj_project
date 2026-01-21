@@ -1,95 +1,116 @@
 <?php
-/**
- * Moduł obsługi koszyka sklepowego.
- * Wersja: v1.8
- * Zarządza sesją $_SESSION['koszyk'].
- */
+// koszyk.php v1.9 - Poprawiony
 
-// Rozpoczynamy sesję, jeśli jeszcze nie wystartowała
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-/**
- * Dodaje produkt do koszyka sesyjnego.
- */
-function DodajDoKoszyka() {
+if (!isset($_SESSION['koszyk'])) {
+    $_SESSION['koszyk'] = [];
+}
+
+function DodajDoKoszyka($link) {
     $id = intval($_POST['id']);
     $tytul = htmlspecialchars($_POST['tytul']);
-    $cena = floatval($_POST['cena']); // Cena brutto
-    $ile = 1; // Domyślnie dodajemy 1 sztukę
+    $cena = floatval($_POST['cena']);
+    $ile = 1;
 
-    // Struktura produktu w koszyku
-    $produkt = [
-        'id' => $id,
-        'tytul' => $tytul,
-        'cena' => $cena,
-        'ile' => $ile
-    ];
+    $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT ilosc_magazyn FROM products WHERE id=$id LIMIT 1"));
+    if (!$row) return; // Zabezpieczenie jeśli produkt nie istnieje
+    
+    $stan_magazynowy = $row['ilosc_magazyn'];
+    $ile_w_koszyku = isset($_SESSION['koszyk'][$id]) ? $_SESSION['koszyk'][$id]['ile'] : 0;
 
-    // Jeśli koszyk nie istnieje, stwórz go
-    if (!isset($_SESSION['koszyk'])) {
-        $_SESSION['koszyk'] = [];
+    if ($ile_w_koszyku + $ile > $stan_magazynowy) {
+        echo "<script>alert('Nie mamy więcej sztuk tego produktu na magazynie!'); window.location='index.php?idp=4';</script>";
+        exit(); // Ważne: przerywamy skrypt, żeby JS zadziałał
     }
 
-    // Sprawdź czy produkt już jest w koszyku - jeśli tak, zwiększ ilość
-    $znaleziono = false;
-    foreach ($_SESSION['koszyk'] as $key => $item) {
-        if ($item['id'] == $id) {
-            $_SESSION['koszyk'][$key]['ile']++;
-            $znaleziono = true;
-            break;
+    if (isset($_SESSION['koszyk'][$id])) {
+        $_SESSION['koszyk'][$id]['ile']++;
+    } else {
+        $_SESSION['koszyk'][$id] = [
+            'id' => $id, 'tytul' => $tytul, 'cena' => $cena, 'ile' => $ile, 'data' => time()
+        ];
+    }
+    header("Location: index.php?idp=4"); // Przekierowanie (czyści POST)
+    exit();
+}
+
+function UsunZKoszyka() {
+    $id = intval($_POST['id']);
+    if (isset($_SESSION['koszyk'][$id])) unset($_SESSION['koszyk'][$id]);
+    header("Location: index.php?idp=4");
+    exit();
+}
+
+function ZmienIlosc($link) {
+    $id = intval($_POST['id']);
+    $typ = $_POST['typ'];
+
+    if (isset($_SESSION['koszyk'][$id])) {
+        if ($typ == 'plus') {
+            $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT ilosc_magazyn FROM products WHERE id=$id LIMIT 1"));
+            if ($_SESSION['koszyk'][$id]['ile'] + 1 > $row['ilosc_magazyn']) {
+                echo "<script>alert('To już wszystkie dostępne sztuki!'); window.location='index.php?idp=4';</script>";
+                exit();
+            }
+            $_SESSION['koszyk'][$id]['ile']++;
+        } elseif ($typ == 'minus') {
+            $_SESSION['koszyk'][$id]['ile']--;
+            if ($_SESSION['koszyk'][$id]['ile'] <= 0) unset($_SESSION['koszyk'][$id]);
         }
     }
-
-    // Jeśli nie znaleziono, dodaj nowy
-    if (!$znaleziono) {
-        $_SESSION['koszyk'][] = $produkt;
-    }
-
-    // Odśwież stronę, żeby wyczyścić POST (zapobiega dodaniu przy F5)
     header("Location: index.php?idp=4");
     exit();
 }
 
-/**
- * Wyświetla skrócony podgląd koszyka.
- */
-function PokazKoszyk() {
-    if (!isset($_SESSION['koszyk']) || count($_SESSION['koszyk']) == 0) {
-        return "<div style='border: 2px dashed #ccc; padding: 10px; margin-bottom: 20px; text-align: center; color: #777;'>Twój koszyk jest pusty 🛒</div>";
+// Nowa funkcja przeniesiona z index.php
+function FinalizujZakup($link) {
+    if (isset($_SESSION['koszyk']) && count($_SESSION['koszyk']) > 0) {
+        foreach ($_SESSION['koszyk'] as $id_prod => $item) {
+            $ile_kupiono = intval($item['ile']);
+            $id_prod = intval($id_prod);
+
+            // Aktualizacja magazynu
+            $link->query("UPDATE products SET ilosc_magazyn = ilosc_magazyn - $ile_kupiono WHERE id = $id_prod");
+            // Sprawdzenie dostępności
+            $link->query("UPDATE products SET status_dostepnosci = 0 WHERE id = $id_prod AND ilosc_magazyn <= 0");
+        }
+        unset($_SESSION['koszyk']);
+        // Przekierowanie z parametrem sukcesu
+        header("Location: index.php?idp=4&msg=zakup_udany");
+        exit();
+    } else {
+         header("Location: index.php?idp=4");
+         exit();
     }
+}
 
+function PokazKoszyk() {
+    // ... (Twoja funkcja PokazKoszyk bez zmian) ...
+    // Skopiuj tutaj funkcję PokazKoszyk z poprzedniej odpowiedzi
+    // Upewnij się tylko, że zwraca HTML, a nie robi echo
+    
+    // Skrócona wersja dla przypomnienia struktury:
+    if (empty($_SESSION['koszyk'])) {
+        return "<div style='border: 2px dashed #ccc; padding: 15px; text-align: center; color: #777; margin-bottom: 20px;'>Twój koszyk jest pusty 🛒</div>";
+    }
     $suma = 0;
-    $html = "<div style='border: 2px solid #28a745; padding: 15px; margin-bottom: 20px; background: #f0fff4;'>";
-    $html .= "<h3>🛒 Twój Koszyk</h3><ul>";
-
-    foreach ($_SESSION['koszyk'] as $item) {
+    $html = "<div class='cart-container' style='margin-bottom: 30px; border: 1px solid #28a745; padding: 15px; background: #fff;'><h3>🛒 Twój Koszyk</h3><table style='width: 100%; border-collapse: collapse;'>";
+    foreach ($_SESSION['koszyk'] as $id => $item) {
         $wartosc = $item['cena'] * $item['ile'];
         $suma += $wartosc;
-        $html .= "<li><b>{$item['tytul']}</b> x{$item['ile']} - " . number_format($wartosc, 2) . " zł</li>";
+        $html .= "<tr style='border-bottom: 1px solid #eee;'><td style='padding:8px;'><b>{$item['tytul']}</b></td>
+        <td style='padding:8px; display:flex; gap:5px;'>
+        <form method='post' action='index.php?idp=4' style='display:inline;'><input type='hidden' name='action' value='update_qty'><input type='hidden' name='id' value='$id'><input type='hidden' name='typ' value='minus'><button>-</button></form>
+        <b>{$item['ile']}</b>
+        <form method='post' action='index.php?idp=4' style='display:inline;'><input type='hidden' name='action' value='update_qty'><input type='hidden' name='id' value='$id'><input type='hidden' name='typ' value='plus'><button>+</button></form>
+        </td><td style='padding:8px;'>".number_format($wartosc,2)." zł</td>
+        <td style='padding:8px;'><form method='post' action='index.php?idp=4'><input type='hidden' name='action' value='remove_item'><input type='hidden' name='id' value='$id'><button style='color:red'>X</button></form></td></tr>";
     }
-
-    $html .= "</ul>";
-    $html .= "<h4 style='text-align: right; margin-top: 10px;'>RAZEM DO ZAPŁATY: " . number_format($suma, 2) . " zł</h4>";
-    
-    // Przycisk czyszczenia koszyka (opcjonalnie)
-    $html .= '<form method="post" action="index.php?idp=4" style="text-align:right;">
-                <input type="hidden" name="action" value="clear_cart">
-                <input type="submit" value="Opróżnij koszyk 🗑️" style="background:#d9534f; color:white; border:none; padding:5px 10px; cursor:pointer;">
-              </form>';
-              
-    $html .= "</div>";
-
+    $html .= "</table><div style='text-align: right; margin-top: 15px;'>DO ZAPŁATY: <b>".number_format($suma,2)." zł</b></div><hr>";
+    $html .= "<form method='post' action='index.php?idp=4' style='text-align: right;'><input type='hidden' name='action' value='checkout'><input type='submit' value='Finalizuj Zakup (Zapłać) ✅' style='background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px;'></form></div>";
     return $html;
-}
-
-/**
- * Czyści koszyk.
- */
-function UsunKoszyk() {
-    unset($_SESSION['koszyk']);
-    header("Location: index.php?idp=4");
-    exit();
 }
 ?>
