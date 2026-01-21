@@ -1,13 +1,20 @@
 <?php
-/**
- * Panel Administracyjny CMS.
- * Wersja: v1.8
+/*
  * Odpowiada za: Logowanie, Edycję, Dodawanie i Usuwanie podstron.
  */
 
 session_start();
 include '../cfg.php'; // Połączenie z bazą danych ($link / $conn)
 include 'sklep.php'; //połaczenie ze sklepem (obsługa kategorii)
+?>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administratora</title>
+    <link rel="stylesheet" href="admin.css"> </head>
+<body>
+<div class="container"> <?php
 /**
  * Generuje formularz logowania do panelu admina.
  * * @return string Kod HTML formularza logowania.
@@ -337,3 +344,5 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     echo FormularzLogowania();
 }
 ?>
+</div> </body>
+</html>

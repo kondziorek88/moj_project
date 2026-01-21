@@ -1,156 +1,253 @@
-/* ========== RESET ========== */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* styles.css - Modern Dark Mode */
+
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-muted: #b0b0b0;
+    --accent: #3498db;
+    --accent-hover: #2980b9;
+    --border: #333;
 }
 
-/* ========== OBRAZKI ========== */
-img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* ========== UKŁAD STRONY ========== */
 body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #ccc;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #222;
+    line-height: 1.6;
 }
 
-/* ========== ZEGAREK I DATA ========== */
-#zegarek, #data {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    display: block;
-    width: 100%;
+/* --- NAGŁÓWEK --- */
+header {
+    background-color: var(--card-bg);
+    padding: 30px 20px;
+    text-align: center; /* Wyśrodkowanie napisu */
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-#zegarek {
-    font-size: 2em;
-    margin-top: 20px;
-}
-
-#data {
-    font-size: 1.2em;
-    color: #555;
-}
-
-/* ========== NAGŁÓWKI ========== */
-#header1 {
-    text-align: center;
-    margin-top: 15px;
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
-
-#header2 {
-    text-align: center;
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-    color: crimson;
-    margin: 20px 0;
-}
-
-/* ========== MENU ========== */
-nav ul {
-    display: flex;
-    justify-content: center;
-    list-style: none;
-    background-color: #444;
-    padding: 10px;
-}
-
-nav ul li {
-    margin: 0 10px;
-}
-
-nav ul li a {
+header h1 {
+    margin: 0;
+    font-weight: 300;
+    letter-spacing: 2px;
     color: #fff;
+    text-transform: uppercase;
+}
+
+/* --- MENU --- */
+nav {
+    background-color: #181818;
+    text-align: center;
+    padding: 10px 0;
+    position: sticky; /* Menu przyklejone u góry */
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border);
+}
+
+.menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.menu li a {
     text-decoration: none;
-    padding: 8px 14px;
-    border-radius: 6px;
+    color: var(--text-muted);
+    font-weight: bold;
+    padding: 8px 16px;
+    transition: 0.3s;
+    border-radius: 4px;
+}
+
+.menu li a:hover {
+    background-color: var(--accent);
+    color: white;
+}
+
+/* --- TREŚĆ GŁÓWNA --- */
+main {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+    min-height: 60vh;
+}
+
+.page, .product-details, .cart-container {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+}
+
+h2, h3 {
+    color: #fff;
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+/* --- ELEMENTY FORMULARZY (INPUTY) --- */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #2c2c2c;
+    border: 1px solid var(--border);
+    color: #fff;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+/* --- PRZYCISKI --- */
+button, input[type="submit"], .btn {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
     transition: background 0.3s;
 }
 
-nav ul li a:hover {
-    background-color: #888;
+button:hover, input[type="submit"]:hover {
+    background-color: var(--accent-hover);
 }
 
-/* ========== TABELA ========== */
+/* --- PRODUKTY (KARTY) --- */
+.product-card {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main);
+    transition: transform 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent) !important;
+}
+
+.product-card h3 {
+    color: #fff;
+    border: none;
+    font-size: 1.2rem;
+}
+
+/* --- TABELE (KOSZYK) --- */
 table {
-    width: 60%;
-    margin: 20px auto;
+    width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    color: var(--text-main);
 }
 
-.tabelka {
+table th {
+    background-color: #2c2c2c;
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+}
+
+table td {
+    border-bottom: 1px solid var(--border);
+    padding: 10px;
+}
+
+/* --- STOPKA --- */
+footer {
+    background-color: #0a0a0a;
+    color: #777;
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9em;
+}
+
+/* --- ZEGAREK --- */
+#zegarek, #data {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: transparent !important;
+    color: #ffffff !important;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    z-index: 9999;
+}
+#data { bottom: 35px; }
+
+/* Linki w tekście */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Kategoria drzewo */
+.shop-categories ul { list-style: none; padding-left: 20px; }
+.shop-categories li { margin: 5px 0; color: var(--text-muted); }
+.shop-categories strong { color: #fff; font-size: 1.1em; }
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.page-content table {
+    width: 100%;
+    table-layout: fixed; /* Zapobiega rozjeżdżaniu */
+}
+
+.page-content td {
     text-align: center;
     padding: 10px;
-    vertical-align: middle;
 }
-
-/* 👇 Poprawiona klasa (wcześniej była literówka .tableka) */
-.tabelka img {
-    width: 80%;
-    height: auto;
-    border-radius: 10px;
-    object-fit: cover;
-    margin: 5px auto;
-    display: block;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Efekt po najechaniu na zdjęcie */
-.tabelka img:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-}
-
-/* ========== OBRAZKI OBROCONE ========== */
 .obroc {
+    transition: transform 0.5s ease-in-out; /* Płynne przejście */
+}
+
+.obroc:hover {
     transform: rotate(90deg);
-    transform-origin: center center;
+    cursor: pointer;
+}
+
+
+.page-content table {
+    width: 100%;
+    table-layout: fixed; 
+    border-collapse: collapse;
+}
+
+.page-content td {
+    width: auto; 
+    padding: 10px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.page-content td img {
     width: 100%;
     height: auto;
+    border-radius: 10px;
     display: block;
-    margin: auto;
-    object-fit: contain;
-}
-
-/* ========== BLOKI TESTOWE (ANIMACJE) ========== */
-.test-block {
-    width: 200px;
-    border: 2px solid rgba(71, 236, 30, 1);
-    background: rgba(71, 236, 30, 0.7);
-    text-align: center;
-    color: #000;
-    padding: 20px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    margin: 20px auto;
-    border-radius: 10px;
-    transition: transform 0.3s ease;
-}
-
-.test-block:hover {
-    transform: scale(1.05);
-}
-
-/* ========== ANIMACJA 3 BLOK ========== */
-#animacjaTestowa3 {
-    width: 150px;
-    height: 80px;
-    background-color: lightblue;
-    border: 2px solid #333;
-    text-align: center;
-    line-height: 80px;
-    margin: 20px auto;
-    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }

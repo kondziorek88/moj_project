@@ -1,5 +1,7 @@
 <?php
-// koszyk.php v1.9 - Poprawiony
+/**
+ * Moduł obsługi koszyka sklepowego (v2.0 - Dark Mode Ready).
+ */
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -16,14 +18,14 @@ function DodajDoKoszyka($link) {
     $ile = 1;
 
     $row = mysqli_fetch_assoc(mysqli_query($link, "SELECT ilosc_magazyn FROM products WHERE id=$id LIMIT 1"));
-    if (!$row) return; // Zabezpieczenie jeśli produkt nie istnieje
+    if (!$row) return;
     
     $stan_magazynowy = $row['ilosc_magazyn'];
     $ile_w_koszyku = isset($_SESSION['koszyk'][$id]) ? $_SESSION['koszyk'][$id]['ile'] : 0;
 
     if ($ile_w_koszyku + $ile > $stan_magazynowy) {
         echo "<script>alert('Nie mamy więcej sztuk tego produktu na magazynie!'); window.location='index.php?idp=4';</script>";
-        exit(); // Ważne: przerywamy skrypt, żeby JS zadziałał
+        exit();
     }
 
     if (isset($_SESSION['koszyk'][$id])) {
@@ -33,7 +35,7 @@ function DodajDoKoszyka($link) {
             'id' => $id, 'tytul' => $tytul, 'cena' => $cena, 'ile' => $ile, 'data' => time()
         ];
     }
-    header("Location: index.php?idp=4"); // Przekierowanie (czyści POST)
+    header("Location: index.php?idp=4");
     exit();
 }
 
@@ -65,7 +67,6 @@ function ZmienIlosc($link) {
     exit();
 }
 
-// Nowa funkcja przeniesiona z index.php
 function FinalizujZakup($link) {
     if (isset($_SESSION['koszyk']) && count($_SESSION['koszyk']) > 0) {
         foreach ($_SESSION['koszyk'] as $id_prod => $item) {
@@ -78,7 +79,6 @@ function FinalizujZakup($link) {
             $link->query("UPDATE products SET status_dostepnosci = 0 WHERE id = $id_prod AND ilosc_magazyn <= 0");
         }
         unset($_SESSION['koszyk']);
-        // Przekierowanie z parametrem sukcesu
         header("Location: index.php?idp=4&msg=zakup_udany");
         exit();
     } else {
@@ -87,30 +87,83 @@ function FinalizujZakup($link) {
     }
 }
 
+/**
+ * Wyświetla koszyk (Style przeniesione do CSS - klasa .cart-container)
+ */
 function PokazKoszyk() {
-    // ... (Twoja funkcja PokazKoszyk bez zmian) ...
-    // Skopiuj tutaj funkcję PokazKoszyk z poprzedniej odpowiedzi
-    // Upewnij się tylko, że zwraca HTML, a nie robi echo
-    
-    // Skrócona wersja dla przypomnienia struktury:
+    // Pusty koszyk
     if (empty($_SESSION['koszyk'])) {
-        return "<div style='border: 2px dashed #ccc; padding: 15px; text-align: center; color: #777; margin-bottom: 20px;'>Twój koszyk jest pusty 🛒</div>";
+        return "<div class='cart-container' style='text-align: center; color: #aaa; padding: 20px;'>Twój koszyk jest pusty 🛒</div>";
     }
+
     $suma = 0;
-    $html = "<div class='cart-container' style='margin-bottom: 30px; border: 1px solid #28a745; padding: 15px; background: #fff;'><h3>🛒 Twój Koszyk</h3><table style='width: 100%; border-collapse: collapse;'>";
+    
+    // USUNĘLIŚMY style="background: #fff" - teraz używa klasy .cart-container z CSS
+    $html = "<div class='cart-container'>";
+    $html .= "<h3>🛒 Twój Koszyk</h3>";
+    
+    // Tabela korzysta teraz ze stylów CSS dla table/th/td
+    $html .= "<table>";
+    $html .= "<tr>
+                <th>Produkt</th>
+                <th>Ilość</th>
+                <th>Wartość</th>
+                <th>Akcje</th>
+              </tr>";
+
     foreach ($_SESSION['koszyk'] as $id => $item) {
         $wartosc = $item['cena'] * $item['ile'];
         $suma += $wartosc;
-        $html .= "<tr style='border-bottom: 1px solid #eee;'><td style='padding:8px;'><b>{$item['tytul']}</b></td>
-        <td style='padding:8px; display:flex; gap:5px;'>
-        <form method='post' action='index.php?idp=4' style='display:inline;'><input type='hidden' name='action' value='update_qty'><input type='hidden' name='id' value='$id'><input type='hidden' name='typ' value='minus'><button>-</button></form>
-        <b>{$item['ile']}</b>
-        <form method='post' action='index.php?idp=4' style='display:inline;'><input type='hidden' name='action' value='update_qty'><input type='hidden' name='id' value='$id'><input type='hidden' name='typ' value='plus'><button>+</button></form>
-        </td><td style='padding:8px;'>".number_format($wartosc,2)." zł</td>
-        <td style='padding:8px;'><form method='post' action='index.php?idp=4'><input type='hidden' name='action' value='remove_item'><input type='hidden' name='id' value='$id'><button style='color:red'>X</button></form></td></tr>";
+
+        $html .= "<tr>";
+        $html .= "<td><b>{$item['tytul']}</b></td>";
+        
+        // Przyciski edycji ilości
+        $html .= "<td style='display:flex; align-items:center; gap:10px;'>
+                    <form method='post' action='index.php?idp=4' style='display:inline;'>
+                        <input type='hidden' name='action' value='update_qty'>
+                        <input type='hidden' name='id' value='$id'>
+                        <input type='hidden' name='typ' value='minus'>
+                        <button type='submit' style='padding:2px 8px; font-size:0.9em;'>-</button>
+                    </form>
+                    
+                    <span style='font-weight:bold; font-size:1.1em;'>{$item['ile']}</span>
+                    
+                    <form method='post' action='index.php?idp=4' style='display:inline;'>
+                        <input type='hidden' name='action' value='update_qty'>
+                        <input type='hidden' name='id' value='$id'>
+                        <input type='hidden' name='typ' value='plus'>
+                        <button type='submit' style='padding:2px 8px; font-size:0.9em;'>+</button>
+                    </form>
+                  </td>";
+        
+        $html .= "<td>" . number_format($wartosc, 2) . " zł</td>";
+        
+        // Przycisk usuwania
+        $html .= "<td>
+                    <form method='post' action='index.php?idp=4'>
+                        <input type='hidden' name='action' value='remove_item'>
+                        <input type='hidden' name='id' value='$id'>
+                        <button type='submit' style='background-color:#e74c3c; padding:5px 10px; font-size:0.8em;'>Usuń</button>
+                    </form>
+                  </td>";
+        $html .= "</tr>";
     }
-    $html .= "</table><div style='text-align: right; margin-top: 15px;'>DO ZAPŁATY: <b>".number_format($suma,2)." zł</b></div><hr>";
-    $html .= "<form method='post' action='index.php?idp=4' style='text-align: right;'><input type='hidden' name='action' value='checkout'><input type='submit' value='Finalizuj Zakup (Zapłać) ✅' style='background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px;'></form></div>";
+
+    $html .= "</table>";
+    
+    $html .= "<div style='text-align: right; margin-top: 20px; font-size: 1.2em; color: #3498db;'>DO ZAPŁATY: <b>" . number_format($suma, 2) . " zł</b></div>";
+    
+    $html .= "<hr style='border-color: #444;'>";
+    
+    // Przycisk finalizacji
+    $html .= "<form method='post' action='index.php?idp=4' style='text-align: right;'>
+                <input type='hidden' name='action' value='checkout'>
+                <input type='submit' value='Finalizuj Zakup (Zapłać) ✅' style='background: #27ae60; color: white; padding: 12px 25px; font-size: 1.1em; border: none; cursor: pointer; border-radius: 5px;'>
+              </form>";
+              
+    $html .= "</div>";
+
     return $html;
 }
 ?>
